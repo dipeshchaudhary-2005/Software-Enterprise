@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fff9e8">
+    <title>Banana Breakout</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Banana Breakout home">
+          <span class="brand-icon" aria-hidden="true">🍌</span>
+          <span>banana<span class="brand-accent">breakout</span></span>
+        </a>
+        <div class="score-card" aria-label="Your score">
+          <span class="score-label">SCORE</span>
+          <span class="score-value" id="score">0</span>
+        </div>
+      </header>
+
+      <section class="game-card" aria-labelledby="game-title">
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> QUICK BRAIN BREAK</div>
+        <h1 id="game-title">Crack the banana code.</h1>
+        <p class="intro">Look closely at the puzzle. What number completes it?</p>
+
+        <div class="puzzle-frame" id="puzzle-frame">
+          <div class="puzzle-placeholder" id="puzzle-placeholder" aria-hidden="true">
+            <span class="placeholder-banana">🍌</span>
+            <span>Your next puzzle is on its way</span>
+          </div>
+          <img id="puzzle-image" alt="Banana number puzzle" hidden>
+        </div>
+
+        <p class="feedback" id="feedback" role="status" aria-live="polite">Getting your first puzzle...</p>
+
+        <form id="answer-form" class="answer-form">
+          <label for="answer">YOUR ANSWER</label>
+          <div class="answer-row">
+            <input
+              id="answer"
+              name="answer"
+              type="number"
+              min="0"
+              max="9"
+              step="1"
+              inputmode="numeric"
+              placeholder="?"
+              autocomplete="off"
+              required
+              disabled
+            >
+            <button class="submit-button" id="submit-button" type="submit" disabled>
+              Check answer <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </form>
+
+        <button class="next-button" id="next-button" type="button" disabled>Loading puzzle...</button>
+      </section>
+
+      <footer>One puzzle at a time. See how many you can crack.</footer>
+    </main>
+  </body>
+</html>
