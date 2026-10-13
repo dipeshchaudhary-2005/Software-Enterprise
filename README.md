@@ -2,6 +2,8 @@
 
 A simple browser-based Banana Breakout demo game powered by the [Banana Game API](https://marcconrad.com/uob/banana/api.php).
 
+See the [development roadmap](./DEVELOPMENT-ROADMAP.md) for the session-by-session plan, folder layout, GitHub workflow, and test checklist.
+
 ## Run the game
 
 Open `Frontend/index.html` in a browser, or serve the repository with a local static web server and open the page there. The game fetches one puzzle at a time from the API, displays the puzzle image, and checks the submitted digit.
