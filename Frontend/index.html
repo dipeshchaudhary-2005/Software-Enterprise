@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#fff9e8">
     <title>Banana Breakout</title>
     <link rel="stylesheet" href="./styles.css">
-    <script src="./app.js" defer></script>
+    <script type="module" src="./js/main.js"></script>
   </head>
   <body>
     <main class="game-shell">
@@ -15,21 +15,140 @@
           <span class="brand-icon" aria-hidden="true">🍌</span>
           <span>banana<span class="brand-accent">breakout</span></span>
         </a>
-        <div class="score-card" aria-label="Your score">
-          <span class="score-label">SCORE</span>
-          <span class="score-value" id="score">0</span>
+        <div class="session-controls" id="session-controls" hidden>
+          <span class="welcome-message" id="welcome-message"></span>
+          <div class="score-card" aria-label="Your score">
+            <span class="score-label">SCORE</span>
+            <span class="score-value" id="score">0</span>
+          </div>
+          <button class="logout-button" id="player-leaderboard-link" type="button" hidden>View leaderboard</button>
+          <button class="logout-button dashboard-link" id="dashboard-link" type="button" hidden>Dashboard</button>
+          <button class="logout-button" id="logout-button" type="button">Log out</button>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark theme" title="Switch to dark theme">
+            <span aria-hidden="true">🌙</span>
+          </button>
         </div>
       </header>
 
-      <section class="game-card" aria-labelledby="game-title">
+      <section class="auth-card" id="auth-card" aria-labelledby="auth-title">
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> YOUR BRAIN BREAK STARTS HERE</div>
+        <h1 id="auth-title">Welcome back.</h1>
+        <p class="intro" id="auth-intro">Log in to play Banana Breakout.</p>
+
+        <form id="login-form" class="auth-form">
+          <label for="login-email">EMAIL</label>
+          <input id="login-email" name="email" type="email" autocomplete="email" required>
+          <label for="login-password">PASSWORD</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+          <button class="auth-submit" type="submit">Log in <span aria-hidden="true">→</span></button>
+        </form>
+
+        <form id="registration-form" class="auth-form" hidden>
+          <label for="register-name">NAME</label>
+          <input id="register-name" name="name" type="text" autocomplete="name" maxlength="60" required>
+          <label for="register-email">EMAIL</label>
+          <input id="register-email" name="email" type="email" autocomplete="email" required>
+          <label for="register-password">PASSWORD</label>
+          <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+          <label for="register-confirm-password">CONFIRM PASSWORD</label>
+          <input id="register-confirm-password" name="confirm-password" type="password" autocomplete="new-password" minlength="8" required>
+          <button class="auth-submit" type="submit">Create account <span aria-hidden="true">→</span></button>
+        </form>
+
+        <p class="auth-feedback" id="auth-feedback" role="status" aria-live="polite"></p>
+        <p class="auth-switch" id="auth-switch">
+          New here? <button class="text-button" type="button" data-auth-mode="register">Create an account</button>
+        </p>
+        <p class="auth-switch guest-action">
+          Just visiting? <button class="text-button" id="guest-button" type="button">Continue as guest</button>
+        </p>
+        <form id="guest-form" class="auth-form" hidden>
+          <label for="guest-name">YOUR NAME</label>
+          <input id="guest-name" name="name" type="text" autocomplete="nickname" maxlength="60" required>
+          <button class="auth-submit" type="submit">Play as guest <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="demo-admin-note">
+          Demo admin login: <strong>admin@bananabreakout.demo</strong><br>
+          Password: <strong>banana-admin-demo</strong>
+        </p>
+      </section>
+
+      <section class="dashboard-card" id="admin-dashboard" aria-labelledby="dashboard-title" hidden>
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> ADMIN AREA</div>
+        <h1 id="dashboard-title">Player leaderboard.</h1>
+        <p class="intro">Top registered player scores saved in this browser.</p>
+        <p class="dashboard-summary" id="dashboard-summary" role="status"></p>
+        <div class="leaderboard-wrap">
+          <table class="leaderboard">
+            <thead>
+              <tr><th>RANK</th><th>PLAYER</th><th>BEST SCORE</th></tr>
+            </thead>
+            <tbody id="leaderboard-body"></tbody>
+          </table>
+          <p class="empty-leaderboard" id="empty-leaderboard" hidden>No registered player scores yet.</p>
+        </div>
+        <h2 class="admin-section-title">Manage users</h2>
+        <p class="dashboard-summary" id="admin-users-status" role="status"></p>
+        <div class="leaderboard-wrap">
+          <table class="leaderboard user-management-table">
+            <thead>
+              <tr><th>PLAYER</th><th>EMAIL</th><th>BEST SCORE</th><th>MANAGE</th></tr>
+            </thead>
+            <tbody id="admin-users-body"></tbody>
+          </table>
+          <p class="empty-leaderboard" id="admin-users-empty" hidden>No registered users yet.</p>
+        </div>
+        <h2 class="admin-section-title">Manage guests</h2>
+        <p class="dashboard-summary" id="admin-guests-status" role="status"></p>
+        <div class="leaderboard-wrap">
+          <table class="leaderboard user-management-table">
+            <thead>
+              <tr><th>GUEST</th><th>BEST SCORE</th><th>MANAGE</th></tr>
+            </thead>
+            <tbody id="admin-guests-body"></tbody>
+          </table>
+          <p class="empty-leaderboard" id="admin-guests-empty" hidden>No guest players yet.</p>
+        </div>
+      </section>
+
+      <section class="mode-card" id="mode-card" aria-labelledby="mode-title" hidden>
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> CHOOSE YOUR CHALLENGE</div>
+        <h1 id="mode-title">Pick a game mode.</h1>
+        <p class="intro">Solve each puzzle before the timer runs out.</p>
+        <div class="mode-options">
+          <button class="mode-option" type="button" data-mode="easy">
+            <span class="mode-name">Easy</span>
+            <span class="mode-time">30 seconds per puzzle</span>
+          </button>
+          <button class="mode-option" type="button" data-mode="medium">
+            <span class="mode-name">Medium</span>
+            <span class="mode-time">50 seconds per puzzle</span>
+          </button>
+          <button class="mode-option" type="button" data-mode="hard">
+            <span class="mode-name">Hard</span>
+            <span class="mode-time">120 seconds per puzzle</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="game-card" id="game-card" aria-labelledby="game-title" hidden>
         <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> QUICK BRAIN BREAK</div>
         <h1 id="game-title">Crack the banana code.</h1>
-        <p class="intro">Look closely at the puzzle. What number completes it?</p>
+        <p class="intro">Study the puzzle image. What number is missing?</p>
+
+        <div class="game-meta">
+          <span class="mode-badge" id="mode-badge">Easy mode</span>
+          <div class="timer" id="puzzle-timer" role="timer" aria-live="off">
+            <span class="timer-label">TIME LEFT</span>
+            <span class="timer-value" id="timer-value">60</span>
+          </div>
+          <button class="change-mode-button" id="change-mode-button" type="button">Change mode</button>
+        </div>
 
         <div class="puzzle-frame" id="puzzle-frame">
           <div class="puzzle-placeholder" id="puzzle-placeholder" aria-hidden="true">
             <span class="placeholder-banana">🍌</span>
-            <span>Your next puzzle is on its way</span>
+            <span id="puzzle-placeholder-text">Loading a puzzle image from the Banana API...</span>
           </div>
           <img id="puzzle-image" alt="Banana number puzzle" hidden>
         </div>
@@ -59,6 +178,22 @@
         </form>
 
         <button class="next-button" id="next-button" type="button" disabled>Loading puzzle...</button>
+      </section>
+
+      <section class="player-leaderboard dashboard-card" id="player-leaderboard" aria-labelledby="player-leaderboard-title" hidden>
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> TOP PLAYERS</div>
+        <h1 id="player-leaderboard-title">Leaderboard.</h1>
+        <p class="intro">Players ranked by their best score in this browser.</p>
+        <p class="dashboard-summary" id="player-leaderboard-status" role="status"></p>
+        <div class="leaderboard-wrap">
+          <table class="leaderboard">
+            <thead>
+              <tr><th>RANK</th><th>PLAYER</th><th>BEST SCORE</th></tr>
+            </thead>
+            <tbody id="player-leaderboard-body"></tbody>
+          </table>
+          <p class="empty-leaderboard" id="player-leaderboard-empty" hidden>No user scores yet. Play and answer puzzles correctly to get on the leaderboard.</p>
+        </div>
       </section>
 
       <footer>One puzzle at a time. See how many you can crack.</footer>

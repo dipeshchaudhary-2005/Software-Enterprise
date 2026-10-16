@@ -15,7 +15,15 @@ Banana Breakout/
 ├── Frontend/
 │   ├── index.html
 │   ├── styles.css
-│   ├── app.js
+│   ├── js/
+│   │   ├── main.js
+│   │   ├── authentication.js
+│   │   ├── auth-ui.js
+│   │   ├── login.js
+│   │   ├── registration.js
+│   │   ├── game.js
+│   │   ├── leaderboard.js
+│   │   └── theme.js
 │   └── assets/                 # Images and sounds, if needed
 ├── Backend/
 │   ├── api/                    # PHP endpoints: login, scores, leaderboard
@@ -62,7 +70,7 @@ After implementing and testing the feature, review and push it:
 
 ```powershell
 git status
-git add Frontend/index.html Frontend/styles.css Frontend/app.js
+git add Frontend/index.html Frontend/styles.css Frontend/js
 git commit -m "Build game screen layout"
 git push -u origin feature/game-board
 ```
