@@ -21,7 +21,7 @@
             <span class="score-label">SCORE</span>
             <span class="score-value" id="score">0</span>
           </div>
-          <button class="logout-button" id="player-leaderboard-link" type="button" hidden>View leaderboard</button>
+          <button class="logout-button" id="player-leaderboard-link" type="button" hidden>Dashboard</button>
           <button class="logout-button dashboard-link" id="dashboard-link" type="button" hidden>Dashboard</button>
           <button class="logout-button" id="logout-button" type="button">Log out</button>
           <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark theme" title="Switch to dark theme">
@@ -73,6 +73,30 @@
         </p>
       </section>
 
+      <section class="dashboard-card" id="user-dashboard" aria-labelledby="user-dashboard-title" hidden>
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> PLAYER AREA</div>
+        <h1 id="user-dashboard-title">Ready to play?</h1>
+        <p class="intro">Choose a game mode or see how you rank.</p>
+        <div class="dashboard-actions">
+          <button class="mode-option" id="arcade-game-button" type="button">
+            <span class="mode-name">Arcade Breakout</span>
+            <span class="mode-time">Move the paddle, break banana blocks, and clear levels.</span>
+          </button>
+          <button class="mode-option" id="single-player-button" type="button">
+            <span class="mode-name">Banana API puzzle</span>
+            <span class="mode-time">Solve number puzzles at your own pace.</span>
+          </button>
+          <button class="mode-option" id="friend-game-button" type="button">
+            <span class="mode-name">Puzzle race with a friend</span>
+            <span class="mode-time">Share the screen and race to solve each API puzzle.</span>
+          </button>
+          <button class="mode-option" id="user-leaderboard-button" type="button">
+            <span class="mode-name">Leaderboard</span>
+            <span class="mode-time">View the top player scores.</span>
+          </button>
+        </div>
+      </section>
+
       <section class="dashboard-card" id="admin-dashboard" aria-labelledby="dashboard-title" hidden>
         <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> ADMIN AREA</div>
         <h1 id="dashboard-title">Player leaderboard.</h1>
@@ -111,10 +135,43 @@
         </div>
       </section>
 
+      <section class="arcade-card" id="arcade-card" aria-labelledby="arcade-title" hidden>
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> BANANA BREAKOUT ARCADE</div>
+        <h1 id="arcade-title">Break the banana blocks.</h1>
+        <p class="intro">Keep the ball in play, clear every block, and advance through the levels.</p>
+
+        <div class="arcade-hud" aria-live="polite">
+          <div><span>SCORE</span><strong id="arcade-score">0</strong></div>
+          <div><span>LIVES</span><strong id="arcade-lives">3</strong></div>
+          <div><span>LEVEL</span><strong id="arcade-level">1</strong></div>
+        </div>
+
+        <canvas
+          id="arcade-canvas"
+          width="640"
+          height="420"
+          aria-label="Breakout game board. Move the paddle with the left and right arrow keys or A and D."
+        ></canvas>
+        <p class="arcade-feedback" id="arcade-feedback" role="status" aria-live="polite">
+          Break all the banana blocks. Three lives per game.
+        </p>
+        <p class="arcade-instructions">
+          Move with ← → or A/D. You can also move the paddle by pointing or touching the board.
+          Press Space to start or resume.
+        </p>
+        <div class="arcade-actions">
+          <button class="auth-submit" id="arcade-start-button" type="button">Start game</button>
+          <button class="change-mode-button" id="arcade-pause-button" type="button" disabled>Pause</button>
+          <button class="change-mode-button" id="arcade-restart-button" type="button">Restart</button>
+          <button class="change-mode-button" id="arcade-exit-button" type="button">Back to dashboard</button>
+        </div>
+      </section>
+
       <section class="mode-card" id="mode-card" aria-labelledby="mode-title" hidden>
         <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> CHOOSE YOUR CHALLENGE</div>
         <h1 id="mode-title">Pick a game mode.</h1>
         <p class="intro">Solve each puzzle before the timer runs out.</p>
+        <button class="text-button dashboard-return" id="mode-dashboard-button" type="button">Back to dashboard</button>
         <div class="mode-options">
           <button class="mode-option" type="button" data-mode="easy">
             <span class="mode-name">Easy</span>
@@ -134,7 +191,7 @@
       <section class="game-card" id="game-card" aria-labelledby="game-title" hidden>
         <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> QUICK BRAIN BREAK</div>
         <h1 id="game-title">Crack the banana code.</h1>
-        <p class="intro">Study the puzzle image. What number is missing?</p>
+        <p class="intro" id="game-intro">Study the puzzle image. What number is missing?</p>
 
         <div class="game-meta">
           <span class="mode-badge" id="mode-badge">Easy mode</span>
@@ -143,6 +200,12 @@
             <span class="timer-value" id="timer-value">60</span>
           </div>
           <button class="change-mode-button" id="change-mode-button" type="button">Change mode</button>
+        </div>
+
+        <div class="battle-scoreboard" id="battle-scoreboard" aria-live="polite" hidden>
+          <div><span id="player-one-name">You</span><strong id="player-one-score">0</strong></div>
+          <span class="battle-vs">VS</span>
+          <div><span id="player-two-name">Friend</span><strong id="player-two-score">0</strong></div>
         </div>
 
         <div class="puzzle-frame" id="puzzle-frame">
@@ -177,6 +240,23 @@
           </div>
         </form>
 
+        <div class="battle-answers" id="battle-answers" hidden>
+          <form id="player-one-form" class="answer-form">
+            <label for="player-one-answer"><span id="player-one-answer-label">PLAYER 1</span> ANSWER</label>
+            <div class="answer-row">
+              <input id="player-one-answer" type="number" min="0" max="9" step="1" inputmode="numeric" placeholder="?" autocomplete="off" required disabled>
+              <button class="submit-button" type="submit" disabled>Submit answer</button>
+            </div>
+          </form>
+          <form id="player-two-form" class="answer-form">
+            <label for="player-two-answer"><span id="player-two-answer-label">PLAYER 2</span> ANSWER</label>
+            <div class="answer-row">
+              <input id="player-two-answer" type="number" min="0" max="9" step="1" inputmode="numeric" placeholder="?" autocomplete="off" required disabled>
+              <button class="submit-button" type="submit" disabled>Submit answer</button>
+            </div>
+          </form>
+        </div>
+
         <button class="next-button" id="next-button" type="button" disabled>Loading puzzle...</button>
       </section>
 
@@ -184,6 +264,7 @@
         <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> TOP PLAYERS</div>
         <h1 id="player-leaderboard-title">Leaderboard.</h1>
         <p class="intro">Players ranked by their best score in this browser.</p>
+        <button class="text-button dashboard-return" id="leaderboard-dashboard-button" type="button">Back to dashboard</button>
         <p class="dashboard-summary" id="player-leaderboard-status" role="status"></p>
         <div class="leaderboard-wrap">
           <table class="leaderboard">
@@ -196,7 +277,7 @@
         </div>
       </section>
 
-      <footer>One puzzle at a time. See how many you can crack.</footer>
+      <footer>Break banana blocks in Arcade Breakout or solve a puzzle from the Banana API.</footer>
     </main>
   </body>
 </html>

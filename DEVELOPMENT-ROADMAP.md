@@ -6,36 +6,43 @@ Use this note to plan each development session and keep the project moving towar
 
 Build a web-based Breakout-style game with a paddle, bouncing ball, banana blocks, score, lives, and levels. Use the Banana API as a bonus puzzle feature. Add PHP, MySQL, player accounts, saved scores, and a leaderboard after the core game works.
 
-The current API demo is a starting point. The API returns both a puzzle image and its solution, so use it as a bonus/demo feature rather than as secure score validation.
+The project now includes the playable Breakout core and keeps the Banana API as a bonus puzzle feature. The API returns both a puzzle image and its solution, so use it as a demonstration rather than as secure score validation.
 
-## Suggested folder structure
+## Current folder structure and where future files go
 
 ```text
-Banana Breakout/
-├── Frontend/
-│   ├── index.html
-│   ├── styles.css
-│   ├── js/
-│   │   ├── main.js
-│   │   ├── authentication.js
-│   │   ├── auth-ui.js
-│   │   ├── login.js
-│   │   ├── registration.js
-│   │   ├── game.js
-│   │   ├── leaderboard.js
-│   │   └── theme.js
-│   └── assets/                 # Images and sounds, if needed
+Software-Enterprise/
 ├── Backend/
-│   ├── api/                    # PHP endpoints: login, scores, leaderboard
-│   ├── config/                 # Database connection; no real credentials in Git
-│   └── database/
-│       └── schema.sql
-├── Middleware/                 # Optional; leave unused unless it is needed
+│   └── server.js               # Local Node.js server for frontend assets
+├── Frontend/
+│   └── public/
+│       ├── index.html          # Page markup and module entry point
+│       ├── styles.css          # Layout and visual styles
+│       └── js/
+│           ├── main.js         # App startup and page coordination
+│           ├── arcade.js       # Canvas game loop, rendering, and input
+│           ├── breakout-engine.mjs # Testable physics and level rules
+│           ├── authentication.js # Demo accounts, guests, and sessions
+│           ├── auth-ui.js      # Authentication screen events
+│           ├── login.js        # Login form
+│           ├── registration.js # Registration form
+│           ├── game.js         # Banana API puzzles and timer
+│           ├── leaderboard.js  # Scores and leaderboard
+│           ├── admin-users.js  # Admin user/guest management
+│           └── theme.js        # Light/dark color mode
+├── Middleware/
+│   └── read-only.js            # Restricts the static server to GET/HEAD
+├── Tests/
+│   ├── backend/server.test.js  # HTTP server tests, including POST rejection
+│   └── frontend/breakout-engine.test.mjs # Arcade physics and game-state tests
 ├── README.md
+├── VIDEO-REFLECTION.md
 └── DEVELOPMENT-ROADMAP.md
 ```
 
-Git does not track empty folders. Add a real project file when you start using a folder. The browser can call the Banana API directly for this demo; add a PHP proxy only if you discover a specific need.
+Keep browser assets in `Frontend/public/` and related behavior in its existing module rather than adding one large file or creating a folder for every theme. The four themes are concepts, not directory names: Git supports version control; the arcade engine, `game.js`, `Backend/server.js`, and Banana API demonstrate interoperability; UI handlers, canvas input, and the game timer demonstrate event-driven programming; and the authentication modules demonstrate virtual identities. `theme.js` is only for the visual color-mode toggle.
+
+The backend currently serves static frontend files only; browser accounts/scores remain local and the frontend calls the Banana API directly. POST requests are intentionally rejected until an API endpoint is implemented. The frontend supports arcade play, API puzzles, and same-device friend races; network multiplayer and server-backed accounts/scores remain future features. Keep secrets out of Git. See [README.md](./README.md) for the feature-to-file map and run instructions.
 
 ## Session-by-session plan
 
@@ -70,7 +77,7 @@ After implementing and testing the feature, review and push it:
 
 ```powershell
 git status
-git add Frontend/index.html Frontend/styles.css Frontend/js
+git add Backend Frontend/public Middleware Tests
 git commit -m "Build game screen layout"
 git push -u origin feature/game-board
 ```
@@ -101,6 +108,8 @@ Make focused commits that describe what changed. Do not commit passwords, API se
 - Missing the ball removes a life; zero lives shows Game Over.
 - Clearing a level advances the game.
 - The API puzzle and image load; an API failure gives a useful message.
+- After login, the player dashboard opens with single-player, friend, and leaderboard options.
+- In friend mode, both answer forms share one puzzle and timer; the first correct answer advances both players.
 - Valid login works; invalid login shows an error.
 - Passwords are stored as hashes, not plain text.
 - A completed score is saved and appears in the leaderboard.

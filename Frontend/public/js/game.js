@@ -21,17 +21,34 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
   const answerForm = document.querySelector("#answer-form");
   const answerInput = document.querySelector("#answer");
   const submitButton = document.querySelector("#submit-button");
+  const battleScoreboard = document.querySelector("#battle-scoreboard");
+  const playerOneForm = document.querySelector("#player-one-form");
+  const playerOneInput = document.querySelector("#player-one-answer");
+  const playerOneScore = document.querySelector("#player-one-score");
+  const playerOneName = document.querySelector("#player-one-name");
+  const playerOneAnswerLabel = document.querySelector("#player-one-answer-label");
+  const playerTwoForm = document.querySelector("#player-two-form");
+  const playerTwoInput = document.querySelector("#player-two-answer");
+  const playerTwoScore = document.querySelector("#player-two-score");
+  const playerTwoName = document.querySelector("#player-two-name");
+  const playerTwoAnswerLabel = document.querySelector("#player-two-answer-label");
   const nextButton = document.querySelector("#next-button");
   const gameCard = document.querySelector("#game-card");
+  const battleAnswers = document.querySelector("#battle-answers");
+  const gameTitle = document.querySelector("#game-title");
+  const gameIntro = document.querySelector("#game-intro");
 
   let currentPuzzle = null;
   let score = 0;
+  let friendScore = 0;
   let answered = false;
   let loading = false;
   let currentMode = null;
+  let playType = "single";
   let timeRemaining = 0;
   let timerInterval = null;
   let puzzleRequestId = 0;
+  let advanceTimeout = null;
 
   function setFeedback(message, type = "") {
     feedback.textContent = message;
@@ -46,6 +63,32 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
     timerElement.classList.remove("urgent");
   }
 
+  function clearAdvanceTimeout() {
+    if (advanceTimeout !== null) {
+      clearTimeout(advanceTimeout);
+      advanceTimeout = null;
+    }
+  }
+
+  function updateBattleDisplay() {
+    const isBattle = playType === "friend";
+    answerForm.hidden = isBattle;
+    battleAnswers.hidden = !isBattle;
+    battleScoreboard.hidden = !isBattle;
+    playerOneName.textContent = getPlayer()?.name || "Player 1";
+    playerOneAnswerLabel.textContent = playerOneName.textContent.toUpperCase();
+    playerTwoName.textContent = "Friend";
+    playerTwoAnswerLabel.textContent = "FRIEND";
+    playerOneScore.textContent = String(score);
+    playerTwoScore.textContent = String(friendScore);
+    gameTitle.textContent = isBattle
+      ? "Race your friend."
+      : "Crack the banana code.";
+    gameIntro.textContent = isBattle
+      ? "You both see the same puzzle. First correct answer wins the round."
+      : "Study the puzzle image. What number is missing?";
+  }
+
   function updateTimerDisplay() {
     const minutes = Math.floor(timeRemaining / 60);
     const seconds = timeRemaining % 60;
@@ -57,12 +100,18 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
   function updateControls() {
     answerInput.disabled = loading || !currentPuzzle || answered;
     submitButton.disabled = loading || !currentPuzzle || answered;
+    playerOneInput.disabled = loading || !currentPuzzle || answered;
+    playerTwoInput.disabled = loading || !currentPuzzle || answered;
+    playerOneForm.querySelector("button").disabled = playerOneInput.disabled;
+    playerTwoForm.querySelector("button").disabled = playerTwoInput.disabled;
     nextButton.disabled = loading;
     nextButton.textContent = loading
       ? "Loading puzzle..."
-      : currentPuzzle && !answered
-        ? "Skip this puzzle"
-        : "Try next question";
+      : playType === "friend" && answered
+        ? "Next shared puzzle"
+        : currentPuzzle && !answered
+          ? "Skip this puzzle"
+          : "Try next question";
     changeModeButton.disabled = loading;
   }
 
@@ -73,7 +122,12 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
     timeRemaining = 0;
     stopTimer();
     updateTimerDisplay();
-    setFeedback("Time's up! Click Try next question when you're ready.", "error");
+    setFeedback(
+      playType === "friend"
+        ? "Time's up! Either player can start the next shared puzzle."
+        : "Time's up! Click Try next question when you're ready.",
+      "error",
+    );
     updateControls();
   }
 
@@ -113,6 +167,7 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
   async function loadPuzzle() {
     if (loading || !currentMode) return;
 
+    clearAdvanceTimeout();
     const requestId = ++puzzleRequestId;
     stopTimer();
     loading = true;
@@ -122,6 +177,8 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
     puzzlePlaceholder.hidden = false;
     placeholderText.textContent = "Loading a puzzle image from the Banana API...";
     answerInput.value = "";
+    playerOneInput.value = "";
+    playerTwoInput.value = "";
     setFeedback("Getting a puzzle image and answer from the Banana API...");
     updateControls();
 
@@ -170,7 +227,9 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
       if (requestId !== puzzleRequestId) return;
       loading = false;
       updateControls();
-      if (currentPuzzle) answerInput.focus();
+      if (currentPuzzle) {
+        (playType === "friend" ? playerOneInput : answerInput).focus();
+      }
     }
   }
 
@@ -179,7 +238,8 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
     if (!button || !GAME_MODES[button.dataset.mode] || loading) return;
 
     currentMode = button.dataset.mode;
-    modeBadge.textContent = `${GAME_MODES[currentMode].label} mode`;
+    modeBadge.textContent = `${GAME_MODES[currentMode].label} · ${playType === "friend" ? "Friend battle" : "Single player"}`;
+    updateBattleDisplay();
     modeCard.hidden = true;
     gameCard.hidden = false;
     onModeChange("game");
@@ -188,6 +248,7 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
 
   changeModeButton.addEventListener("click", () => {
     if (loading) return;
+    clearAdvanceTimeout();
     stopTimer();
     currentPuzzle = null;
     currentMode = null;
@@ -196,57 +257,110 @@ export function initGame({ getPlayer, onModeChange, onScoreUpdated }) {
     onModeChange("modes");
   });
 
-  answerForm.addEventListener("submit", (event) => {
-    event.preventDefault();
+  function submitAnswer(input, playerNumber = 1) {
     if (!currentPuzzle || answered) return;
 
-    const answer = Number(answerInput.value);
+    const answer = Number(input.value);
     if (!Number.isInteger(answer) || answer < 0 || answer > 9) {
       setFeedback("Enter a whole number from 0 to 9.", "error");
-      answerInput.focus();
+      input.focus();
+      return;
+    }
+
+    if (answer !== currentPuzzle.solution) {
+      if (playType === "friend") {
+        const name = playerNumber === 1 ? playerOneName.textContent : playerTwoName.textContent;
+        setFeedback(`${name} is not quite right. Try again before time runs out.`, "error");
+        input.value = "";
+        input.focus();
+        return;
+      }
+
+      answered = true;
+      stopTimer();
+      setFeedback(`Not quite — the answer was ${currentPuzzle.solution}.`, "error");
+      updateControls();
+      nextButton.focus();
       return;
     }
 
     answered = true;
     stopTimer();
-    if (answer === currentPuzzle.solution) {
+    if (playType === "friend" && playerNumber === 2) {
+      friendScore += 1;
+      playerTwoScore.textContent = String(friendScore);
+      setFeedback(`${playerTwoName.textContent} solved it first! Loading the next shared puzzle...`, "success");
+    } else {
       score += 1;
       scoreElement.textContent = String(score);
+      playerOneScore.textContent = String(score);
       try {
         savePlayerScore(getPlayer(), score);
         setFeedback(
-          getPlayer()?.role === "user"
-            ? "That's right! Your best score is saved."
-            : "That's right! Your guest best score is saved.",
+          playType === "friend"
+            ? `${playerOneName.textContent} solved it first! Loading the next shared puzzle...`
+            : getPlayer()?.role === "user"
+              ? "That's right! Your best score is saved."
+              : "That's right! Your guest best score is saved.",
           "success",
         );
         onScoreUpdated();
       } catch (error) {
         setFeedback(`Correct! Couldn't save your score: ${error.message}`, "error");
       }
-    } else {
-      setFeedback(`Not quite — the answer was ${currentPuzzle.solution}.`, "error");
     }
     updateControls();
+    if (playType === "friend") {
+      advanceTimeout = setTimeout(() => {
+        advanceTimeout = null;
+        loadPuzzle();
+      }, 650);
+      return;
+    }
     nextButton.focus();
+  }
+
+  answerForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    submitAnswer(answerInput);
+  });
+  playerOneForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    submitAnswer(playerOneInput, 1);
+  });
+  playerTwoForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    submitAnswer(playerTwoInput, 2);
   });
 
   nextButton.addEventListener("click", loadPuzzle);
 
   return {
-    reset() {
+    selectPlayType(type) {
+      if (type !== "single" && type !== "friend") return;
+      this.reset("modes");
+      playType = type;
+      updateBattleDisplay();
+    },
+    reset(view = "modes") {
       puzzleRequestId += 1;
+      clearAdvanceTimeout();
       stopTimer();
       currentPuzzle = null;
       currentMode = null;
+      playType = "single";
       answered = false;
       loading = false;
       score = 0;
+      friendScore = 0;
       scoreElement.textContent = "0";
+      playerOneScore.textContent = "0";
+      playerTwoScore.textContent = "0";
       gameCard.hidden = true;
-      modeCard.hidden = false;
+      modeCard.hidden = view !== "modes";
+      updateBattleDisplay();
       updateControls();
-      onModeChange("modes");
+      onModeChange(view);
     },
   };
 }
