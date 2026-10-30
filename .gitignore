@@ -1,0 +1,23 @@
+# Git ignore file for BananaBrain
+# Version Control: this file tells Git what NOT to track
+
+# Data files (contain user passwords and sessions - never commit these!)
+backend/data/users.json
+backend/data/sessions.json
+backend/data/scores.json
+backend/data/avatars/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# PHP logs
+*.log
+php_error.log

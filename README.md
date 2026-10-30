@@ -1,101 +1,164 @@
-# Software-Enterprise
+# BananaBrain 🍌
 
-A browser-based Banana Breakout game with an arcade mode and puzzle challenges powered by the [Banana Game API](https://marcconrad.com/uob/banana/api.php).
+A browser-based math puzzle game built for CIS046-3 Software For Enterprise.
 
-See the [development roadmap](./DEVELOPMENT-ROADMAP.md) for the session-by-session plan, folder layout, GitHub workflow, and test checklist.
+Built with: **HTML5 · CSS3 · Vanilla JavaScript · PHP 8**
 
-See [VIDEO-REFLECTION.md](./VIDEO-REFLECTION.md) for the reflection on version control, interoperability, event-driven programming, and virtual identity, along with the complete source-code inventory and attribution notes.
+---
 
-## Project structure
+## How to Run
 
-```text
-Software-Enterprise/
-├── Backend/
-│   └── server.js               # Local Node.js server for frontend assets
-├── Frontend/
-│   └── public/
-│       ├── index.html          # Page markup and module entry point
-│       ├── styles.css          # Layout and visual styles
-│       └── js/
-│           ├── main.js         # Starts the app and coordinates page views
-│           ├── arcade.js       # Canvas Breakout controls, rendering, and game states
-│           ├── breakout-engine.mjs # Testable paddle, ball, collision, and level rules
-│           ├── authentication.js # Demo accounts, guests, sessions, browser storage
-│           ├── auth-ui.js      # Login, registration, guest, and logout UI events
-│           ├── login.js        # Login form behavior
-│           ├── registration.js # Registration form behavior
-│           ├── game.js         # Banana API puzzles, answers, and timer
-│           ├── leaderboard.js  # Save scores and render leaderboards
-│           ├── admin-users.js  # Admin actions for users and guests
-│           └── theme.js        # Light/dark color-mode toggle
-├── Middleware/
-│   └── read-only.js            # Allows static GET/HEAD requests; rejects writes
-├── Tests/
-│   ├── backend/server.test.js  # HTTP smoke tests, including POST rejection
-│   └── frontend/breakout-engine.test.mjs # Arcade physics and game-state tests
-├── README.md
-├── DEVELOPMENT-ROADMAP.md
-└── VIDEO-REFLECTION.md
+1. Make sure **PHP** is installed (php.net/downloads)
+2. Double-click **`start-server.bat`**. It starts the PHP server and opens the game in your browser automatically. If you prefer to run the server yourself:
+   ```
+   php -S localhost:8000 backend/router.php
+   ```
+3. Open your browser and visit: **http://localhost:8000**
+
+### Where things go
+
+- **`frontend/`** contains everything that makes up the part you see and use in your browser: the page, styles, and game scripts.
+- **`backend/`** contains the PHP server, API endpoints, and private player data. The backend handles accounts, scores, profiles, and puzzle requests.
+- **`README.md`**, **`start-server.bat`**, and **`.gitignore`** stay at the project root. The launcher starts PHP using the backend router, which connects the frontend to the backend.
+
+### Admin account setup
+
+The admin account is bootstrapped from private server environment variables. In PowerShell, set a unique username and a long password (at least 12 characters) before starting PHP:
+
+```powershell
+$env:BB_ADMIN_USERNAME = "your_admin_name"
+$env:BB_ADMIN_PASSWORD = "use-a-long-unique-password"
+.\start-server.bat
 ```
 
-Keep browser code and static assets in `Frontend/public/`. Put a new page in `index.html`, its appearance in `styles.css`, and its behavior in the closest existing JavaScript module. Keep account and identity storage in `authentication.js`, arcade rendering and input in `arcade.js`, physics in `breakout-engine.mjs`, puzzle and timer behavior in `game.js`, and score presentation/storage in `leaderboard.js`. `main.js` should coordinate modules rather than take over their individual responsibilities.
+The account is created automatically on the first API request. Keep these values private; there is no public admin signup or role toggle. If the configured username already exists, its password must match the configured password before it receives admin access.
 
-`Backend/server.js` serves the frontend only. There are no server-side account, score, or Banana API endpoints yet, so POST requests return `405 Method Not Allowed`; the tests explicitly verify that boundary. Accounts and scores stay in this browser. Friend mode is a same-device race, not network multiplayer. Add API handlers and persistence only when implementing server-backed features, under `Backend/api/` and `Backend/database/`, and keep secrets out of Git.
+---
 
-## How the four themes appear in this project
+## Project Structure
 
-| Theme | What it means here | Main files or project area |
+```
+Banana Api/
+├── frontend/               # Browser interface (what players see and use)
+│   ├── index.html          # Main game page
+│   ├── css/
+│   │   └── style.css       # Colors, layout, and themes
+│   └── js/
+│       ├── auth.js         # Login, registration, and sessions
+│       ├── profile.js      # Player profile and avatar
+│       ├── game.js         # Game rules, timer, and puzzle display
+│       ├── leaderboard.js  # Scores and player statistics
+│       ├── admin.js        # Admin dashboard interface
+│       └── app.js          # Page navigation and shared UI
+│
+├── backend/                # Server functionality (runs with PHP)
+│   ├── router.php          # Connects browser pages/assets to PHP API; protects private data
+│   ├── api/
+│   │   ├── helpers.php     # Shared utilities: JSON storage and sessions
+│   │   ├── auth.php        # Registration, login, logout, and session checks
+│   │   ├── banana.php      # Puzzle API proxy and validation
+│   │   ├── profile.php     # Registered-user profile and avatar operations
+│   │   ├── leaderboard.php # Score saving and statistics
+│   │   └── admin.php       # Admin-only account and score overview
+│   └── data/               # Private storage, created automatically by PHP
+│       ├── users.json      # User accounts and password hashes
+│       ├── sessions.json   # Active login sessions
+│       ├── scores.json     # Saved scores
+│       ├── avatars/        # Uploaded profile pictures
+│       └── .htaccess       # Additional protection for Apache hosting
+│
+├── start-server.bat        # One-click PHP server launcher
+├── README.md               # Project guide
+└── .gitignore              # Files Git should not save
+```
+
+---
+
+## Game modes
+
+- **Difficulty:** Choose Easy (30 seconds per puzzle), Medium (45 seconds), or Hard (60 seconds) after selecting Play. You can also change difficulty during a puzzle; the timer resets to the new level's full duration. The countdown begins after the puzzle image loads; a timeout shows the answer and advances to the next puzzle.
+- **Players:** Single-player or alternating two-player turns on the same device. Each friend has separate lives, streaks, and score for the round.
+- **Guest:** Enter a display name to play without registering. Guest sessions and scores stay in the current browser session and are not submitted to the leaderboard.
+- **Profile:** Registered users can edit their display name and upload a JPEG, PNG, or WebP profile picture (up to 256 KB). Login usernames remain fixed; guest profiles are not editable.
+- **Appearance:** Use the theme button to switch between dark and light mode; the choice is saved in the browser.
+- **Admin dashboard:** Shows registered accounts and score summaries. The PHP API checks the server-side admin account configuration before returning this data.
+
+## Four Themes Addressed
+
+### 1. Version Control
+- Code is organised into separate modules (`auth.js`, `game.js`, `leaderboard.js`, `app.js` on the frontend; `auth.php`, `banana.php`, `leaderboard.php`, `helpers.php` on the backend)
+- Each module has a **single responsibility** — this is analogous to components in a version-controlled repository
+- Git branches were used during development: `main`, `dev`, `feature/auth`, `feature/game`, `feature/leaderboard`
+
+### 2. Event-Driven Programming
+Events used in this project:
+| Event | Source | Handler |
 |---|---|---|
-| Version control | Git records changes; feature branches, focused commits, and pull requests make work reviewable and recoverable. | Git repository; workflow in `DEVELOPMENT-ROADMAP.md` |
-| Interoperability | Browser modules load through the local server; the arcade uses browser canvas and the puzzle mode requests JSON and images from the external Banana API. | `Backend/server.js`, `Frontend/public/index.html`, `Frontend/public/js/arcade.js`, `Frontend/public/js/game.js` |
-| Event-driven programming | Forms, keyboard/pointer input, canvas animation frames, API responses, image loads, and timer ticks trigger the app's behavior. | `Frontend/public/js/main.js`, `Frontend/public/js/auth-ui.js`, `Frontend/public/js/arcade.js`, `Frontend/public/js/game.js`, `Frontend/public/js/theme.js` |
-| Virtual identity | Guest, registered-user, and demo-admin roles have different names, sessions, and UI capabilities. | `Frontend/public/js/authentication.js`, `Frontend/public/js/auth-ui.js`, `Frontend/public/js/admin-users.js`, `Frontend/public/js/leaderboard.js` |
+| `DOMContentLoaded` | Browser | `checkExistingSession()` |
+| `submit` (form) | Login/Register form | `handleLogin()`, `handleRegister()` |
+| `keydown` (Enter) | Document | `submitAnswer()` |
+| `input` | Answer field | Digit sanitiser |
+| `setInterval` tick | Timer | `onTimerTick()` |
+| `img.onload` | Puzzle image | `onPuzzleImageLoaded()` |
+| `img.onerror` | Puzzle image | `onPuzzleImageError()` |
+| `requestAnimationFrame` | Browser | Confetti animation loop |
+| `click` | All buttons | Various handlers |
+| `resize` | Window | Canvas resize |
+| `keydown` (Escape) | Document | `closeModal()` |
 
-The four themes are concepts demonstrated by the app; they are not four folders to create. Also, `theme.js` refers only to the visual light/dark color setting, not to the four assignment themes. The reflection in [VIDEO-REFLECTION.md](./VIDEO-REFLECTION.md) explains each theme and its limitations in more detail.
-
-## Run the game
-
-From the repository root, start the included local server:
-
-```powershell
-node Backend/server.js
+### 3. Interoperability
+```
+[Browser JS]
+     │  fetch() — HTTPS/HTTP GET — JSON
+     ▼
+[backend/api/banana.php]  ←── Server-side proxy and validation
+     │  cURL — HTTPS GET
+     ▼
+[Banana API]  (https://marcconrad.com/uob/banana/)
+     │  JSON: { question: "<base64 image>", solution: <int> }
+     ▼
+[backend/api/banana.php]  ←── Parses and validates response
+     │  JSON response
+     ▼
+[Browser JS]  ←── Renders puzzle image + stores solution
 ```
 
-Then open `http://127.0.0.1:4173` in your browser. Keep the server terminal open while playing. JavaScript ES modules do not load when the HTML is opened directly as a `file://` URL.
+**Protocols used:** HTTPS · JSON · cURL · Fetch API
+**External API:** Banana API by Marc Conrad — https://marcconrad.com/uob/banana/doc.php
 
-Run the backend and arcade-engine tests with Node.js (no package install required):
+The PHP proxy requests the API's base64 image response and returns it as an image data URI, avoiding broken or inaccessible third-party image-host URLs. When PHP is unavailable (for example, in a static preview), the browser tries the official HTTPS API directly.
 
-```powershell
-node --test Tests/backend/server.test.js Tests/frontend/breakout-engine.test.mjs
-```
+### 4. Virtual Identity
+- **Registration:** Username + BCRYPT-hashed password stored in `backend/data/users.json`
+- **Login:** `password_verify()` checks the submitted password against the stored hash
+- **Session token:** Generated using `random_bytes(32)` (64-char hex, 512-bit entropy)
+- **Client storage:** Token stored in `localStorage` (analogous to a persistent cookie)
+- **Authenticated requests:** Token sent in `X-Session-Token` HTTP header
+- **Logout:** Token removed from both `localStorage` (client) and `sessions.json` (server)
+- **Session expiry:** 24-hour TTL enforced server-side
 
-The API is provided "as is", may be discontinued without notice, and must not be used for commercial applications. See the [API documentation](https://marcconrad.com/uob/banana/).
+---
 
-Use the header's **Dark mode / Light mode** button to switch color themes. Your choice is saved in this browser.
+## External Resources & References
 
-## Player dashboard, login, and leaderboard
+| Source | Used For | Reference in Code |
+|---|---|---|
+| Banana API by Marc Conrad | Puzzle images and solutions | `backend/api/banana.php`, `frontend/js/game.js` |
+| PHP password_hash docs | BCRYPT password hashing | `backend/api/auth.php` |
+| PHP random_bytes docs | Secure session token generation | `backend/api/helpers.php` |
+| Google Fonts — Outfit | Typography | `frontend/index.html` |
+| OWASP Authentication Cheat Sheet | Security practices | `backend/api/auth.php` (comment) |
+| MDN Web Docs — Fetch API | HTTP requests from JavaScript | `frontend/js/auth.js`, `frontend/js/game.js`, `frontend/js/leaderboard.js` |
 
-The game has three browser-demo roles:
+All AI-generated code (generated with assistance from an AI coding assistant) is clearly marked with comments in each file.
 
-- **Guest:** enter a name to play without registering. After entering, the dashboard offers arcade and puzzle modes; the guest name and best score are saved in this browser and can be managed by the admin.
-- **User:** register with a name, email, and password of at least 8 characters, or log in later. Accounts and each user's best score are saved in this browser; passwords are stored as SHA-256 hashes. After login, the dashboard offers arcade, puzzle, friend, and leaderboard options.
-- **Admin:** sign in with the built-in demo account below to open the dashboard, see the top 10 players' best scores, and manage registered users and named guests. Deleting a player removes their account/name and saved score from this browser.
+---
 
-Demo admin login:
+## Academic Declaration
 
-- Email: `admin@bananabreakout.demo`
-- Password: `banana-admin-demo`
+This project was produced for CIS046-3 Software For Enterprise at the University of Bedfordshire.
 
-This is for demonstration only, not production authentication: the admin credentials and role checks are visible in client-side code, browser data is local to this browser, and client-side checks can be bypassed. For production use, move account storage, password verification, authorization, and leaderboard data to a secure backend.
-
-## Puzzle modes and Banana API
-
-From the player dashboard, select **Banana API puzzle** or **Puzzle race with a friend**, then choose a difficulty. Easy gives 0:30 per puzzle, Medium gives 0:50, and Hard gives 2:00. In friend mode, both players share the same screen, puzzle, and timer; enter answers in the separate player fields. The first correct answer wins the round and immediately loads the next puzzle for both players. Friend mode is local same-device play, not a network multiplayer room. When the timer reaches 0:00, either player can start the next shared puzzle. In single-player mode, a timed-out or incorrect answer can be followed by **Try next question**.
-
-The game reads `question` as the puzzle image URL and `solution` as the single-digit answer from the Banana API response. If the API request or image fails, the game shows an error and lets you retry with **Try next question**. Play through the local server above to ensure both the modules and API requests are allowed by the browser.
-
-## Arcade Breakout
-
-Choose **Arcade Breakout** from the player dashboard. Move the paddle with the left/right arrow keys or **A/D**, or move the pointer/touch across the game board. Break the banana blocks to earn 10 points each, keep the ball in play, and clear each level; the game ends after three missed balls. Use **Space** to start or resume, or the on-screen controls to pause, restart, and return to the dashboard. Arcade scores update the player's browser-local best score.
-
-The physics and collision rules live in `Frontend/public/js/breakout-engine.mjs`, separate from canvas rendering and input handling in `Frontend/public/js/arcade.js`.
+- The Banana API is provided by Marc Conrad (University of Bedfordshire)
+- PHP, JavaScript, HTML and CSS examples from MDN Web Docs were referenced
+- Code structure assistance provided by AI coding tools (as permitted by the assignment brief)
+- All external sources are referenced in comments within the source code

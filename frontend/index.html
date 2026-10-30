@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BananaBrain — A fast-paced math puzzle game powered by the Banana API. Play as a guest or registered player, choose a difficulty, and challenge a friend.">
+    <meta name="author" content="CIS046-3 Assignment">
+
+    <title>BananaBrain 🍌 | Math Puzzle Game</title>
+
+    <!-- Google Fonts: Outfit — modern, rounded, premium feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<button id="theme-toggle" class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Switch to light mode" title="Switch theme">☀️ Light</button>
+
+<!-- Floating banana/math background particles (decorative) -->
+<div class="bg-particles" id="bgParticles" aria-hidden="true"></div>
+
+<!-- ================================================================
+     AUTH VIEW — Login & Registration
+     Virtual Identity: Users create or verify their digital identity here.
+     Event-driven: form 'submit' events trigger handleLogin / handleRegister
+     ================================================================ -->
+<section id="view-auth" class="view active" aria-label="Authentication">
+    <div class="auth-container glass-card">
+
+        <!-- Logo / Branding -->
+        <div class="logo-area">
+            <span class="logo-icon" aria-hidden="true">🍌</span>
+            <h1 class="logo-text">BananaBrain</h1>
+            <p class="logo-sub">The ultimate math puzzle challenge</p>
+        </div>
+
+        <!-- Tab Switcher: Login / Register -->
+        <div class="tab-switcher" role="tablist">
+            <button id="tab-login"    class="tab-btn active" role="tab" aria-selected="true"  onclick="switchTab('login')">Login</button>
+            <button id="tab-register" class="tab-btn"        role="tab" aria-selected="false" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <!-- Event-driven: 'submit' event fires handleLogin() -->
+        <form id="form-login" class="auth-form" onsubmit="handleLogin(event)" novalidate>
+            <div class="form-group">
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" name="username"
+                       placeholder="Enter your username"
+                       autocomplete="username" required
+                       minlength="3" maxlength="20">
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="login-password" name="password"
+                           placeholder="Enter your password"
+                           autocomplete="current-password" required>
+                    <!-- Event-driven: click event toggles password visibility -->
+                    <button type="button" class="toggle-pw" onclick="togglePassword('login-password')" aria-label="Toggle password visibility">👁</button>
+                </div>
+            </div>
+            <div id="login-error" class="error-msg hidden" role="alert" aria-live="polite"></div>
+            <button type="submit" id="btn-login" class="btn-primary">
+                <span class="btn-text">Login</span>
+                <span class="btn-loader hidden" aria-hidden="true">⏳</span>
+            </button>
+        </form>
+
+        <div class="guest-entry">
+            <button type="button" id="btn-guest-toggle" class="btn-ghost" onclick="toggleGuestForm()">Play as Guest</button>
+            <form id="form-guest" class="auth-form hidden" onsubmit="startGuest(event)">
+                <div class="form-group">
+                    <label for="guest-name">Your display name</label>
+                    <input type="text" id="guest-name" name="guestName" placeholder="Enter your name" maxlength="24" autocomplete="nickname" required>
+                </div>
+                <div id="guest-error" class="error-msg hidden" role="alert" aria-live="polite"></div>
+                <button type="submit" class="btn-secondary">Continue as Guest</button>
+            </form>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <!-- Event-driven: 'submit' event fires handleRegister() -->
+        <form id="form-register" class="auth-form hidden" onsubmit="handleRegister(event)" novalidate>
+            <div class="form-group">
+                <label for="reg-username">Choose a Username</label>
+                <input type="text" id="reg-username" name="username"
+                       placeholder="3–20 letters, numbers or _"
+                       autocomplete="username" required
+                       minlength="3" maxlength="20">
+            </div>
+            <div class="form-group">
+                <label for="reg-password">Create a Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="reg-password" name="password"
+                           placeholder="At least 6 characters"
+                           autocomplete="new-password" required minlength="6">
+                    <button type="button" class="toggle-pw" onclick="togglePassword('reg-password')" aria-label="Toggle password visibility">👁</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="reg-confirm">Confirm Password</label>
+                <input type="password" id="reg-confirm" name="confirm"
+                       placeholder="Repeat your password"
+                       autocomplete="new-password" required>
+            </div>
+            <div id="reg-error" class="error-msg hidden" role="alert" aria-live="polite"></div>
+            <button type="submit" id="btn-register" class="btn-primary">
+                <span class="btn-text">Create Account</span>
+                <span class="btn-loader hidden" aria-hidden="true">⏳</span>
+            </button>
+        </form>
+
+    </div>
+</section>
+
+<!-- ================================================================
+     MAIN MENU VIEW
+     Shows user stats and navigation options
+     ================================================================ -->
+<section id="view-menu" class="view" aria-label="Main Menu">
+    <div class="menu-container">
+
+        <!-- User identity badge -->
+        <div class="user-badge glass-card">
+            <span id="menu-avatar-placeholder" class="user-avatar" aria-hidden="true">🍌</span>
+            <img id="menu-avatar" class="user-avatar-image hidden" alt="Your profile picture">
+            <span id="menu-username" class="user-name">Player</span>
+            <button id="btn-edit-profile" class="btn-profile-edit hidden" type="button" onclick="toggleProfileEditor()">Edit Profile</button>
+            <button id="btn-logout" class="btn-logout" onclick="handleLogout()" title="Logout" aria-label="Logout">⏏ Logout</button>
+        </div>
+
+        <form id="form-profile" class="profile-editor glass-card hidden" onsubmit="saveProfile(event)">
+            <h3>Update profile</h3>
+            <div class="form-group">
+                <label for="profile-display-name">Display name</label>
+                <input type="text" id="profile-display-name" name="displayName" maxlength="24" autocomplete="nickname" required>
+                <small>Your login username will not change.</small>
+            </div>
+            <div class="form-group">
+                <label for="profile-avatar-input">Profile picture (PNG, JPEG or WebP; up to 256 KB)</label>
+                <input type="file" id="profile-avatar-input" name="avatar" accept="image/png,image/jpeg,image/webp">
+            </div>
+            <div class="profile-preview">
+                <img id="profile-preview-image" class="hidden" alt="Profile picture preview">
+                <span id="profile-preview-placeholder" aria-hidden="true">🍌</span>
+            </div>
+            <div id="profile-error" class="error-msg hidden" role="alert" aria-live="polite"></div>
+            <div class="profile-actions">
+                <button type="submit" id="btn-save-profile" class="btn-primary">Save profile</button>
+                <button type="button" class="btn-ghost" onclick="toggleProfileEditor(false)">Cancel</button>
+            </div>
+        </form>
+
+        <!-- Hero section -->
+        <div class="menu-hero">
+            <div class="hero-icon" aria-hidden="true">🧠</div>
+            <h2 class="hero-title">Ready to Play?</h2>
+            <p class="hero-sub">Solve banana math puzzles and top the global leaderboard!</p>
+        </div>
+
+        <!-- Player stats panel -->
+        <div class="menu-stats glass-card" aria-label="Your statistics">
+            <div class="stat-item">
+                <span class="stat-val" id="stat-best">—</span>
+                <span class="stat-label">Best Score</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-val" id="stat-games">—</span>
+                <span class="stat-label">Games Played</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-val" id="stat-rank">—</span>
+                <span class="stat-label">Global Rank</span>
+            </div>
+        </div>
+
+        <div class="game-options glass-card">
+            <div class="form-group">
+                <label for="player-mode-select">Players</label>
+                <select id="player-mode-select" onchange="toggleFriendName()">
+                    <option value="single">Single player</option>
+                    <option value="friend">Play with a friend (same device)</option>
+                </select>
+            </div>
+            <div class="form-group hidden" id="friend-name-group">
+                <label for="friend-name">Friend's name</label>
+                <input type="text" id="friend-name" maxlength="24" placeholder="Enter your friend's name" autocomplete="off">
+            </div>
+        </div>
+
+        <!-- Navigation actions -->
+        <div class="menu-actions">
+            <!-- Event-driven: click fires startGame() -->
+            <button class="btn-primary btn-large" id="btn-play" onclick="openDifficultyPicker()">🎮 Play Now</button>
+            <button class="btn-secondary" id="btn-leaderboard-nav" onclick="showView('leaderboard')">🏆 Leaderboard</button>
+            <button class="btn-secondary hidden" id="btn-admin-nav" onclick="showView('admin')">🛡️ Admin Dashboard</button>
+            <button class="btn-ghost" id="btn-how" onclick="showHowToPlay()">❓ How to Play</button>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================================
+     GAME VIEW — Core gameplay
+     Event-driven: timer events, keyboard events, click events all control game flow
+     Interoperability: puzzle images fetched from external Banana API via PHP proxy
+     ================================================================ -->
+<section id="view-game" class="view" aria-label="Game">
+    <div class="game-container">
+
+        <!-- HUD: Header bar -->
+        <div class="game-header">
+            <!-- Event-driven: click fires quitGame() -->
+            <button class="btn-back" id="btn-quit" onclick="quitGame()" aria-label="Quit game">← Quit</button>
+            <div class="game-info" aria-label="Game status">
+                <div class="info-chip lives-chip" aria-label="Lives remaining">
+                    <span id="game-lives">❤️❤️❤️</span>
+                </div>
+                <div class="info-chip score-chip" aria-label="Current score">
+                    <span>⭐</span>
+                    <span id="game-score">0</span>
+                </div>
+                <div class="info-chip" aria-label="Question number">
+                    Q<span id="game-question-num">1</span>/10
+                </div>
+            </div>
+        </div>
+        <div class="game-difficulty-control">
+            <label for="game-difficulty-select">Difficulty</label>
+            <select id="game-difficulty-select" onchange="changeGameDifficulty(this.value)" aria-label="Change game difficulty">
+                <option value="easy">Easy · 30s</option>
+                <option value="medium">Medium · 45s</option>
+                <option value="hard">Hard · 60s</option>
+            </select>
+        </div>
+        <div class="turn-indicator" id="game-turn-indicator" aria-live="polite"></div>
+
+        <!-- Timer bar — fills/depletes via setInterval timer events -->
+        <div class="timer-bar-container" aria-label="Time remaining" role="progressbar" aria-valuemin="0" aria-valuemax="30">
+            <div class="timer-bar" id="timer-bar"></div>
+        </div>
+        <div class="timer-text" id="timer-text" aria-live="polite">30s</div>
+
+        <!-- Puzzle image area — image fetched via PHP proxy (interoperability) -->
+        <div class="puzzle-area glass-card" id="puzzle-area" aria-label="Banana math puzzle">
+            <div class="puzzle-loading" id="puzzle-loading">
+                <div class="spinner" aria-hidden="true"></div>
+                <p>Fetching puzzle from Banana API...</p>
+            </div>
+            <!-- Image loaded from external API via PHP proxy (interoperability) -->
+            <img id="puzzle-image"
+                 class="puzzle-img hidden"
+                 alt="Banana math puzzle — find the missing number (0 to 9)" />
+        </div>
+
+        <!-- Answer input section -->
+        <div class="answer-area">
+            <p class="answer-label">What is the missing number? <span class="answer-range">(0 – 9)</span></p>
+            <div class="answer-input-group">
+                <input type="number" id="answer-input" class="answer-input"
+                       placeholder="?" min="0" max="9"
+                       aria-label="Your answer"
+                       autocomplete="off" inputmode="numeric">
+                <!-- Event-driven: click fires submitAnswer() -->
+                <button class="btn-submit" id="btn-submit" onclick="submitAnswer()" disabled>
+                    Submit ✓
+                </button>
+            </div>
+            <p class="answer-hint">Press <kbd>Enter</kbd> to submit quickly</p>
+        </div>
+
+        <!-- Feedback overlay (correct / wrong / timeout) -->
+        <!-- Event-driven: shown in response to submitAnswer() or handleTimeout() -->
+        <div class="feedback-overlay hidden" id="feedback-overlay" role="dialog" aria-modal="true" aria-label="Answer feedback">
+            <div class="feedback-card" id="feedback-card">
+                <div class="feedback-icon" id="feedback-icon" aria-hidden="true"></div>
+                <div class="feedback-text" id="feedback-text"></div>
+                <div class="feedback-points" id="feedback-points"></div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ================================================================
+     GAME OVER VIEW
+     Displays final score and invites replay or leaderboard view
+     ================================================================ -->
+<section id="view-gameover" class="view" aria-label="Game Over">
+    <div class="gameover-container">
+        <div class="gameover-icon" id="gameover-icon" aria-hidden="true">🎯</div>
+        <h2 class="gameover-title" id="gameover-title">Game Over!</h2>
+        <p class="gameover-sub" id="gameover-sub">Here's how you did:</p>
+
+        <div class="gameover-stats glass-card">
+            <div class="stat-item">
+                <span class="stat-val" id="go-score">0</span>
+                <span class="stat-label">Final Score</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-val" id="go-correct">0/10</span>
+                <span class="stat-label">Correct</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-val" id="go-streak">0</span>
+                <span class="stat-label">Best Streak</span>
+            </div>
+        </div>
+        <div id="friend-results" class="friend-results hidden" aria-live="polite"></div>
+
+        <div class="gameover-actions">
+            <button class="btn-primary btn-large" id="btn-play-again" onclick="openDifficultyPicker()">🔄 Play Again</button>
+            <button class="btn-secondary" id="btn-go-leaderboard" onclick="showView('leaderboard')">🏆 Leaderboard</button>
+            <button class="btn-ghost" id="btn-go-menu" onclick="showView('menu')">🏠 Menu</button>
+        </div>
+    </div>
+</section>
+
+<!-- ================================================================
+     ADMIN DASHBOARD — Server-authorized account and score overview
+     ================================================================ -->
+<section id="view-admin" class="view" aria-label="Admin Dashboard">
+    <div class="admin-container">
+        <div class="lb-header">
+            <button class="btn-back" onclick="showView('menu')" aria-label="Back to menu">← Back</button>
+            <h2 class="lb-title">🛡️ Admin Dashboard</h2>
+            <button class="btn-icon" onclick="loadAdminDashboard()" title="Refresh dashboard" aria-label="Refresh dashboard">↻</button>
+        </div>
+        <div id="admin-content" class="admin-content glass-card" aria-live="polite">
+            <div class="lb-loading">Loading dashboard...</div>
+        </div>
+    </div>
+</section>
+
+<div class="modal-overlay hidden" id="difficulty-modal"
+     role="dialog" aria-modal="true" aria-labelledby="difficulty-modal-title"
+     onclick="closeDifficultyPicker(event)">
+    <div class="modal-card glass-card difficulty-card" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeDifficultyPicker()" aria-label="Close">✕</button>
+        <h3 id="difficulty-modal-title">Choose your difficulty</h3>
+        <p class="difficulty-description">Select a level to start. You can switch levels during the round.</p>
+        <p id="difficulty-error" class="error-msg hidden" role="alert"></p>
+        <div class="difficulty-choices">
+            <button class="difficulty-choice" type="button" onclick="startGame('easy')">
+                <span>🍌 Easy</span><small>30 seconds per puzzle</small>
+            </button>
+            <button class="difficulty-choice" type="button" onclick="startGame('medium')">
+                <span>🧠 Medium</span><small>45 seconds per puzzle</small>
+            </button>
+            <button class="difficulty-choice" type="button" onclick="startGame('hard')">
+                <span>🔥 Hard</span><small>60 seconds per puzzle</small>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     LEADERBOARD VIEW
+     Shows global rankings and personal score history
+     Interoperability: data fetched from PHP backend via fetch()
+     Virtual Identity: scores are tied to logged-in username
+     ================================================================ -->
+<section id="view-leaderboard" class="view" aria-label="Leaderboard">
+    <div class="leaderboard-container">
+        <div class="lb-header">
+            <button class="btn-back" onclick="showView('menu')" aria-label="Back to menu">← Back</button>
+            <h2 class="lb-title">🏆 Leaderboard</h2>
+            <div class="lb-refresh">
+                <!-- Event-driven: click fires loadLeaderboard() -->
+                <button class="btn-icon" onclick="loadLeaderboard(currentLbMode)" title="Refresh" aria-label="Refresh leaderboard">↻</button>
+            </div>
+        </div>
+
+        <!-- Tab switcher: Global / My Scores -->
+        <div class="lb-tabs" role="tablist">
+            <button id="lb-tab-global" class="tab-btn active" role="tab" onclick="loadLeaderboard('global')">🌍 Global</button>
+            <button id="lb-tab-mine"   class="tab-btn"        role="tab" onclick="loadLeaderboard('mine')">👤 My Scores</button>
+        </div>
+
+        <!-- Score entries rendered by leaderboard.js -->
+        <div class="lb-list" id="lb-list" aria-live="polite">
+            <div class="lb-loading">Loading scores...</div>
+        </div>
+    </div>
+</section>
+
+<!-- ================================================================
+     HOW TO PLAY MODAL
+     ================================================================ -->
+<div class="modal-overlay hidden" id="how-to-play-modal"
+     role="dialog" aria-modal="true" aria-label="How to play"
+     onclick="closeModal()">
+    <div class="modal-card glass-card" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+        <h3>How to Play 🍌</h3>
+        <ul class="how-list">
+            <li>🔢 Each puzzle shows a math equation with a <strong>missing digit (0–9)</strong></li>
+            <li>⏱ Easy: <strong>30 seconds</strong>, Medium: <strong>45 seconds</strong>, Hard: <strong>60 seconds</strong> per question</li>
+            <li>⭐ Base score per correct answer: <strong>50 pts + time bonus</strong></li>
+            <li>🔥 Build a streak for <strong>bonus points</strong> (3+ in a row)</li>
+            <li>❤️ You have <strong>3 lives</strong> — wrong answer or timeout loses one</li>
+            <li>🔟 10 questions per round — complete all to finish</li>
+            <li>🏆 Registered single-player scores are saved to the <strong>global leaderboard</strong>; guest scores stay on this round only</li>
+            <li>👥 Friend mode alternates turns on the same device</li>
+        </ul>
+        <button class="btn-primary" onclick="closeModal()">Let's Play!</button>
+    </div>
+</div>
+
+<!-- Confetti canvas (correct answer celebration) -->
+<canvas id="confetti-canvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+<!-- ================================================================
+     JavaScript Modules (loaded in dependency order)
+     Event-driven: each module registers event listeners on DOM elements
+     ================================================================ -->
+<script src="/js/auth.js"></script>        <!-- Virtual Identity: login/register/logout -->
+<script src="/js/profile.js"></script>     <!-- Registered player profile and avatar -->
+<script src="/js/leaderboard.js"></script>  <!-- Score management -->
+<script src="/js/admin.js"></script>       <!-- Role-protected admin dashboard -->
+<script src="/js/game.js"></script>         <!-- Core game loop (event-driven) -->
+<script src="/js/app.js"></script>          <!-- Router & global utilities -->
+
+</body>
+</html>
