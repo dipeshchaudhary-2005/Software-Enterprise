@@ -5,6 +5,7 @@
 backend/data/users.json
 backend/data/sessions.json
 backend/data/scores.json
+backend/data/guests.json
 backend/data/avatars/
 
 # OS-generated files

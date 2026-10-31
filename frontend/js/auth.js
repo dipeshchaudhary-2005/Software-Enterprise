@@ -74,9 +74,7 @@ async function checkExistingSession() {
             currentUser = data.username;
             currentRole = data.role || 'user';
             currentDisplayName = data.displayName || data.username;
-            updateMenuIdentity();
-            showView('menu');
-            loadMenuStats(); // Load personal stats from PHP leaderboard API
+            showAuthenticatedHome();
         } else {
             // Token expired or invalid — clean up and show login
             localStorage.removeItem(SESSION_KEY);
@@ -114,13 +112,24 @@ function updateMenuIdentity() {
     const adminButton = document.getElementById('btn-admin-nav');
     const leaderboardButton = document.getElementById('btn-leaderboard-nav');
     const profileButton = document.getElementById('btn-edit-profile');
+    const playButton = document.getElementById('btn-play');
+    const playerModeSelect = document.getElementById('player-mode-select');
+    const isAdmin = currentRole === 'admin';
     const isRegistered = currentRole === 'user' || currentRole === 'admin';
+    const friendModeOption = playerModeSelect?.querySelector('option[value="friend"]');
     if (usernameEl) usernameEl.textContent = `${currentDisplayName || currentUser || 'Player'}${isGuest ? ' (Guest)' : ''}`;
     if (logoutButton) logoutButton.textContent = isGuest ? '↩ Exit' : '⏏ Logout';
     if (logoutButton) logoutButton.setAttribute('aria-label', isGuest ? 'Exit guest session' : 'Logout');
     if (stats) stats.classList.toggle('hidden', isGuest);
     if (adminButton) adminButton.classList.toggle('hidden', currentRole !== 'admin');
     if (leaderboardButton) leaderboardButton.classList.toggle('hidden', isGuest);
+    if (playButton) playButton.classList.toggle('hidden', isAdmin);
+    if (friendModeOption) friendModeOption.disabled = isGuest;
+    if (isGuest && playerModeSelect) playerModeSelect.value = 'single';
+    toggleFriendName();
+    document.querySelectorAll('.menu-hero, .game-options').forEach(element => {
+        element.classList.toggle('hidden', isAdmin);
+    });
     if (profileButton) profileButton.classList.toggle('hidden', !isRegistered);
     const profileForm = document.getElementById('form-profile');
     if (profileForm && !isRegistered) profileForm.classList.add('hidden');
@@ -128,6 +137,11 @@ function updateMenuIdentity() {
     if (gameoverLeaderboard) gameoverLeaderboard.classList.toggle('hidden', isGuest);
     if (isRegistered) loadProfile();
     else clearProfileAvatar();
+}
+
+function showAuthenticatedHome() {
+    updateMenuIdentity();
+    showView(currentRole === 'admin' ? 'admin' : 'menu');
 }
 
 function toggleGuestForm() {
@@ -160,7 +174,11 @@ function startGuest(event) {
 }
 
 function toggleFriendName() {
-    const isFriendMode = document.getElementById('player-mode-select').value === 'friend';
+    const playerModeSelect = document.getElementById('player-mode-select');
+    if (currentRole === 'guest' && playerModeSelect.value === 'friend') {
+        playerModeSelect.value = 'single';
+    }
+    const isFriendMode = currentRole !== 'guest' && playerModeSelect.value === 'friend';
     const nameGroup = document.getElementById('friend-name-group');
     nameGroup.classList.toggle('hidden', !isFriendMode);
 }
@@ -240,9 +258,7 @@ async function handleLogin(event) {
             currentRole = data.role || 'user';
             currentDisplayName = data.displayName || data.username;
 
-            updateMenuIdentity();
-            showView('menu');
-            loadMenuStats();
+            showAuthenticatedHome();
         } else {
             showErrorMsg(errorEl, data.message || 'Login failed. Please try again.');
         }
@@ -310,9 +326,7 @@ async function handleRegister(event) {
             currentRole = data.role || 'user';
             currentDisplayName = data.displayName || data.username;
 
-            updateMenuIdentity();
-            showView('menu');
-            loadMenuStats();
+            showAuthenticatedHome();
         } else {
             showErrorMsg(errorEl, data.message || 'Registration failed. Please try again.');
         }

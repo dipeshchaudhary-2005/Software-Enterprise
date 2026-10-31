@@ -43,6 +43,10 @@ switch ($action) {
             http_response_code(401);
             jsonResponse(false, 'Unauthorized. Please log in.');
         }
+        if (isAdminUser($username)) {
+            http_response_code(403);
+            jsonResponse(false, 'Administrators cannot submit game scores.');
+        }
         handleSaveScore($username);
         break;
 

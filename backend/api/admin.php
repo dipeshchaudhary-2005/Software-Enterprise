@@ -24,6 +24,11 @@ if (!$username || !isAdminUser($username)) {
 }
 
 $users = readJson(USERS_FILE);
+$users = array_values(array_filter(
+    $users,
+    fn($user) => (int) ($user['games_played'] ?? 0) > 0
+));
+$guests = readJson(GUESTS_FILE);
 $scores = readJson(SCORES_FILE);
 usort($scores, fn($a, $b) => ($b['score'] ?? 0) - ($a['score'] ?? 0));
 
@@ -35,11 +40,18 @@ $publicUsers = array_map(fn($user) => [
     'best_score' => (int) ($user['best_score'] ?? 0),
     'created_at' => $user['created_at'] ?? ''
 ], $users);
+$publicGuests = array_map(fn($guest) => [
+    'player_name' => $guest['player_name'],
+    'games_played' => (int) ($guest['games_played'] ?? 0),
+    'last_played' => $guest['last_played'] ?? ''
+], $guests);
 
 jsonResponse(true, 'Dashboard data loaded.', [
-    'userCount' => count($users),
-    'gameCount' => array_sum(array_map(fn($user) => (int) ($user['games_played'] ?? 0), $users)),
+    'playerCount' => count($publicUsers) + count($publicGuests),
+    'gameCount' => array_sum(array_map(fn($user) => (int) ($user['games_played'] ?? 0), $users))
+        + array_sum(array_map(fn($guest) => (int) ($guest['games_played'] ?? 0), $publicGuests)),
     'scoreCount' => count($scores),
     'users' => $publicUsers,
+    'guests' => $publicGuests,
     'scores' => array_slice($scores, 0, 50)
 ]);

@@ -108,6 +108,14 @@ document.addEventListener('DOMContentLoaded', function initGameListeners() {
  * Event-driven entry point: called by the "Play Now" button click event.
  */
 function openDifficultyPicker() {
+    if (currentRole === 'admin') {
+        showView('admin');
+        return;
+    }
+    if (currentRole === 'guest') {
+        document.getElementById('player-mode-select').value = 'single';
+        toggleFriendName();
+    }
     closeModal();
     const error = document.getElementById('difficulty-error');
     error.classList.add('hidden');
@@ -127,13 +135,19 @@ function closeDifficultyPicker(event) {
 }
 
 async function startGame(difficulty) {
+    if (currentRole === 'admin') {
+        showView('admin');
+        return;
+    }
     if (!['easy', 'medium', 'hard'].includes(difficulty)) {
         openDifficultyPicker();
         return;
     }
 
     gameState = createInitialState();
-    const mode = document.getElementById('player-mode-select').value;
+    const playerModeSelect = document.getElementById('player-mode-select');
+    if (currentRole === 'guest') playerModeSelect.value = 'single';
+    const mode = playerModeSelect.value;
     const friendName = document.getElementById('friend-name').value.trim();
     if (mode === 'friend' && (!friendName || friendName.length > 24)) {
         const error = document.getElementById('difficulty-error');
@@ -260,6 +274,9 @@ async function loadNextQuestion() {
 }
 
 async function fetchBananaPuzzle() {
+    if (currentRole === 'admin') {
+        throw new Error('Administrators cannot play the game.');
+    }
     let proxyError;
     const token = localStorage.getItem('bb_token');
     const headers = token
@@ -667,6 +684,24 @@ async function endGame() {
     // Save score via PHP leaderboard API (interoperability)
     if (gameState.score > 0 && gameState.mode === 'single' && currentRole !== 'guest') {
         await saveScore(gameState.score, gameState.correctCount, gameState.bestStreak);
+    }
+    const guestPlayers = completedGame.players.filter((player, index) =>
+        currentRole === 'guest' || (completedGame.mode === 'friend' && index > 0)
+    );
+    if (guestPlayers.length > 0) {
+        try {
+            const response = await fetch('api/guests.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ players: guestPlayers.map(player => player.name) })
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || `Server returned HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.error('[game] Could not record guest players:', error);
+        }
     }
     if (gameState !== completedGame || !document.getElementById('view-game').classList.contains('active')) return;
 
