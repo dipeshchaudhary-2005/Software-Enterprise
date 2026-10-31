@@ -53,6 +53,11 @@ $token    = $_SERVER['HTTP_X_SESSION_TOKEN'] ?? '';
 $username = validateSession($token);
 $guestName = trim($_SERVER['HTTP_X_GUEST_NAME'] ?? '');
 
+if ($username && isAdminUser($username)) {
+    http_response_code(403);
+    jsonResponse(false, 'Administrators cannot play the game.');
+}
+
 $guestLength = preg_match_all('/./us', $guestName);
 if (!$username && ($guestName === '' || $guestLength === false || $guestLength > 24 || preg_match('/[\x00-\x1F\x7F]/', $guestName))) {
     http_response_code(401);

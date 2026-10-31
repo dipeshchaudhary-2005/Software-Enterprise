@@ -578,8 +578,11 @@ html, body {
 
 .menu-hero    { text-align: center; }
 .hero-icon    {
-    font-size:    3.8rem;
-    margin-bottom: 12px;
+    display:       block;
+    width:         3.8rem;
+    height:        3.8rem;
+    margin:        0 auto 12px;
+    color:         var(--accent);
     filter:       drop-shadow(0 0 20px rgba(255,215,0,0.45));
     animation:    bounce 2.4s ease-in-out infinite;
 }
@@ -1103,6 +1106,8 @@ kbd {
     transform: translateY(-2px);
 }
 
+.difficulty-choice > span { display: flex; align-items: center; gap: 8px; }
+.difficulty-icon { width: 1.2rem; height: 1.2rem; color: var(--accent); }
 .difficulty-choice small { color: var(--text-dim); font-size: 0.8rem; font-weight: 500; }
 .difficulty-card .error-msg { margin-bottom: 16px; }
 

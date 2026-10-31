@@ -24,6 +24,14 @@ async function loadAdminDashboard() {
                 <td>${escapeHtml(user.created_at)}</td>
             </tr>
         `).join('');
+        const guestRows = data.guests.map(guest => `
+            <tr>
+                <td>Guest (no login)</td>
+                <td>${escapeHtml(guest.player_name)}</td>
+                <td>${Number(guest.games_played)}</td>
+                <td>${escapeHtml(guest.last_played)}</td>
+            </tr>
+        `).join('');
         const scoreRows = data.scores.map(score => `
             <tr>
                 <td>${escapeHtml(score.username)}</td>
@@ -35,14 +43,19 @@ async function loadAdminDashboard() {
 
         container.innerHTML = `
             <div class="admin-summary">
-                <span class="info-chip">👥 ${Number(data.userCount)} users</span>
+                <span class="info-chip">👥 ${Number(data.playerCount)} players</span>
                 <span class="info-chip">🎮 ${Number(data.gameCount)} games played</span>
                 <span class="info-chip">🏆 ${Number(data.scoreCount)} saved scores</span>
             </div>
-            <h3 class="admin-section-title">Registered users</h3>
+            <h3 class="admin-section-title">Registered players</h3>
             <table class="admin-table">
-                <thead><tr><th>Username</th><th>Display name</th><th>Role</th><th>Games</th><th>Best score</th><th>Created</th></tr></thead>
-                <tbody>${userRows || '<tr><td colspan="6">No users found.</td></tr>'}</tbody>
+                <thead><tr><th>Login</th><th>Player name</th><th>Role</th><th>Games</th><th>Best score</th><th>Created</th></tr></thead>
+                <tbody>${userRows || '<tr><td colspan="6">No registered players have completed a game.</td></tr>'}</tbody>
+            </table>
+            <h3 class="admin-section-title">Guest / test players</h3>
+            <table class="admin-table">
+                <thead><tr><th>Login</th><th>Player name</th><th>Games</th><th>Last played</th></tr></thead>
+                <tbody>${guestRows || '<tr><td colspan="4">No guest players have completed a game.</td></tr>'}</tbody>
             </table>
             <h3 class="admin-section-title">Recent top scores</h3>
             <table class="admin-table">

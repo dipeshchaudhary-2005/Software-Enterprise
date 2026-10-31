@@ -157,7 +157,10 @@
 
         <!-- Hero section -->
         <div class="menu-hero">
-            <div class="hero-icon" aria-hidden="true">🧠</div>
+            <svg class="hero-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+                <path d="M8 7h8M8 11h2m4 0h2m-8 4h2m4 0h2m-8 4h2m4 0h2"></path>
+            </svg>
             <h2 class="hero-title">Ready to Play?</h2>
             <p class="hero-sub">Solve banana math puzzles and top the global leaderboard!</p>
         </div>
@@ -349,7 +352,13 @@
                 <span>🍌 Easy</span><small>30 seconds per puzzle</small>
             </button>
             <button class="difficulty-choice" type="button" onclick="startGame('medium')">
-                <span>🧠 Medium</span><small>45 seconds per puzzle</small>
+                <span>
+                    <svg class="difficulty-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14m-7-7h14"></path>
+                        <circle cx="12" cy="12" r="9"></circle>
+                    </svg>
+                    Medium
+                </span><small>45 seconds per puzzle</small>
             </button>
             <button class="difficulty-choice" type="button" onclick="startGame('hard')">
                 <span>🔥 Hard</span><small>60 seconds per puzzle</small>
