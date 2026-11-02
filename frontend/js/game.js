@@ -292,6 +292,8 @@ async function fetchBananaPuzzle() {
         return normalizePuzzle(data);
     } catch (error) {
         proxyError = error;
+        // Authenticated players must use the proxy so server-side play restrictions cannot be bypassed.
+        if (token) throw error;
         console.warn('[game] PHP puzzle proxy unavailable; trying the official API directly:', error.message);
     }
 
@@ -684,6 +686,16 @@ async function endGame() {
     // Save score via PHP leaderboard API (interoperability)
     if (gameState.score > 0 && gameState.mode === 'single' && currentRole !== 'guest') {
         await saveScore(gameState.score, gameState.correctCount, gameState.bestStreak);
+    }
+    if (gameState.mode === 'friend' && currentRole === 'user') {
+        const [player, friend] = completedGame.players;
+        await saveFriendMatch(
+            friend.name,
+            player.score,
+            player.correctCount,
+            friend.score,
+            friend.correctCount
+        );
     }
     const guestPlayers = completedGame.players.filter((player, index) =>
         currentRole === 'guest' || (completedGame.mode === 'friend' && index > 0)

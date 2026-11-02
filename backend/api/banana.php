@@ -57,6 +57,10 @@ if ($username && isAdminUser($username)) {
     http_response_code(403);
     jsonResponse(false, 'Administrators cannot play the game.');
 }
+if ($username && isUserBlocked($username)) {
+    http_response_code(403);
+    jsonResponse(false, 'This account is blocked from playing.');
+}
 
 $guestLength = preg_match_all('/./us', $guestName);
 if (!$username && ($guestName === '' || $guestLength === false || $guestLength > 24 || preg_match('/[\x00-\x1F\x7F]/', $guestName))) {

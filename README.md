@@ -66,6 +66,7 @@ Banana Api/
 │       ├── sessions.json   # Active login sessions
 │       ├── scores.json     # Saved scores
 │       ├── guests.json     # Guest player names and completed game counts
+│       ├── friend_matches.json # Registered players' friend-match results
 │       ├── avatars/        # Uploaded profile pictures
 │       └── .htaccess       # Additional protection for Apache hosting
 │
@@ -83,7 +84,8 @@ Banana Api/
 - **Guest:** Enter a display name to play without registering. Guest scores are not submitted to the leaderboard. After a round completes, guest names and completed-game counts appear separately in the admin dashboard; friend-mode participants are recorded there as guests too.
 - **Profile:** Registered users can edit their display name and upload a JPEG, PNG, or WebP profile picture (up to 256 KB). Login usernames remain fixed; guest profiles are not editable.
 - **Appearance:** Use the theme button to switch between dark and light mode; the choice is saved in the browser.
-- **Admin dashboard:** Shows registered players who have completed a game, guest/test player names and game counts, and score summaries. Accounts with no completed games are omitted from the player list. Guest logins are shown as "Guest (no login)." Dashboard data and score/puzzle restrictions are enforced by the PHP API.
+- **Admin dashboard:** Shows all registered accounts, guest/test player names and game counts, single-player score summaries, and recorded friend-match results. Admins can block or unblock regular accounts from playing, or delete an account along with its saved scores, friend matches, and sessions. Administrator accounts cannot be managed this way. Guest logins are shown as "Guest (no login)." Dashboard access and play restrictions are enforced by the PHP API.
+- **Friend-match leaderboard:** Registered players can see their own friend-match scores and winner under My Scores. Friend results are also available to administrators in the admin dashboard; they are not added to the public global leaderboard.
 
 ## Four Themes Addressed
 

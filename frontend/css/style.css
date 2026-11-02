@@ -803,7 +803,8 @@ html, body {
     text-align:    center;
     outline:       none;
     transition:    border-color var(--transition), box-shadow var(--transition);
-    -moz-appearance: textfield;
+    appearance:       textfield;
+    -moz-appearance:  textfield;
 }
 
 .answer-input::-webkit-inner-spin-button,
@@ -953,6 +954,12 @@ kbd {
 .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
 .admin-table th, .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--glass-border); white-space: nowrap; }
 .admin-table th { color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; }
+.admin-actions { display: flex; gap: 8px; }
+.admin-action-button { padding: 6px 10px; border: 1px solid var(--glass-border); border-radius: 8px; background: var(--glass); color: var(--text); cursor: pointer; }
+.admin-action-button:disabled { opacity: 0.6; cursor: wait; }
+.admin-danger { color: var(--danger); }
+.admin-message:empty { display: none; }
+.admin-message { margin: 0 0 14px; color: var(--text); }
 .admin-error { color: var(--danger); text-align: center; padding: 28px 10px; }
 
 
@@ -1031,6 +1038,10 @@ kbd {
 .lb-right  { text-align: right; }
 .lb-score  { font-size: 1.15rem; font-weight: 800; color: var(--accent); }
 .lb-date   { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+.friend-match-heading { margin: 20px 4px 4px; font-size: 1.05rem; }
+.friend-match-entry { flex-wrap: wrap; }
+.friend-match-details { display: flex; flex-direction: column; gap: 4px; text-align: right; }
+.friend-match-details strong { color: var(--accent); }
 .lb-refresh { display: flex; align-items: center; }
 
 
