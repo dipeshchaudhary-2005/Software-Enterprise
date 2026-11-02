@@ -120,22 +120,24 @@ function updateMenuIdentity() {
     if (usernameEl) usernameEl.textContent = `${currentDisplayName || currentUser || 'Player'}${isGuest ? ' (Guest)' : ''}`;
     if (logoutButton) logoutButton.textContent = isGuest ? '↩ Exit' : '⏏ Logout';
     if (logoutButton) logoutButton.setAttribute('aria-label', isGuest ? 'Exit guest session' : 'Logout');
-    if (stats) stats.classList.toggle('hidden', isGuest);
+    if (stats) stats.classList.toggle('hidden', isGuest || isAdmin);
     if (adminButton) adminButton.classList.toggle('hidden', currentRole !== 'admin');
-    if (leaderboardButton) leaderboardButton.classList.toggle('hidden', isGuest);
+    if (leaderboardButton) leaderboardButton.classList.toggle('hidden', isGuest || isAdmin);
     if (playButton) playButton.classList.toggle('hidden', isAdmin);
+    const howToButton = document.getElementById('btn-how');
+    if (howToButton) howToButton.classList.toggle('hidden', isAdmin);
     if (friendModeOption) friendModeOption.disabled = isGuest;
     if (isGuest && playerModeSelect) playerModeSelect.value = 'single';
     toggleFriendName();
     document.querySelectorAll('.menu-hero, .game-options').forEach(element => {
         element.classList.toggle('hidden', isAdmin);
     });
-    if (profileButton) profileButton.classList.toggle('hidden', !isRegistered);
+    if (profileButton) profileButton.classList.toggle('hidden', !isRegistered || isAdmin);
     const profileForm = document.getElementById('form-profile');
-    if (profileForm && !isRegistered) profileForm.classList.add('hidden');
+    if (profileForm && (!isRegistered || isAdmin)) profileForm.classList.add('hidden');
     const gameoverLeaderboard = document.getElementById('btn-go-leaderboard');
     if (gameoverLeaderboard) gameoverLeaderboard.classList.toggle('hidden', isGuest);
-    if (isRegistered) loadProfile();
+    if (isRegistered && !isAdmin) loadProfile();
     else clearProfileAvatar();
 }
 

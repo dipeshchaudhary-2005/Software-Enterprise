@@ -39,7 +39,7 @@
  * @param {'auth' | 'menu' | 'game' | 'gameover' | 'leaderboard' | 'admin'} viewName
  */
 function showView(viewName) {
-    if (currentRole === 'admin' && ['game', 'gameover'].includes(viewName)) {
+    if (currentRole === 'admin' && ['game', 'gameover', 'menu', 'leaderboard'].includes(viewName)) {
         showView('admin');
         return;
     }

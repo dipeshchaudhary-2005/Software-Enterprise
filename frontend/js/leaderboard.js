@@ -70,6 +70,31 @@ async function saveScore(score, correct, streak) {
     }
 }
 
+async function saveFriendMatch(friendName, playerScore, playerCorrect, friendScore, friendCorrect) {
+    const token = localStorage.getItem('bb_token');
+    if (!token) {
+        console.warn('[leaderboard] Cannot save friend match: no session token.');
+        return;
+    }
+
+    try {
+        const response = await fetch('api/leaderboard.php?action=save-friend', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Session-Token': token
+            },
+            body: JSON.stringify({ friendName, playerScore, playerCorrect, friendScore, friendCorrect })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || `Server returned HTTP ${response.status}`);
+        }
+    } catch (error) {
+        console.error('[leaderboard] Friend match save failed:', error);
+    }
+}
+
 /**
  * Load and render leaderboard entries.
  *
@@ -114,8 +139,9 @@ async function loadLeaderboard(mode = 'global') {
         }
 
         const entries = data.entries;
+        const friendMatches = data.friendMatches || [];
 
-        if (!entries || entries.length === 0) {
+        if ((!entries || entries.length === 0) && friendMatches.length === 0) {
             const msg = mode === 'mine'
                 ? "You haven't played any games yet. Play now to get on the board!"
                 : 'No scores yet. Be the first to play!';
@@ -126,7 +152,7 @@ async function loadLeaderboard(mode = 'global') {
         // ── Render leaderboard entries ────────────────────────────────────────
         list.innerHTML = '';
 
-        entries.forEach((entry, index) => {
+        (entries || []).forEach((entry, index) => {
             const rank      = index + 1;
             const rankLabel = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
             const isMe      = entry.username === currentUser;
@@ -149,6 +175,30 @@ async function loadLeaderboard(mode = 'global') {
             entryEl.style.animationDelay = (index * 0.05) + 's';
             list.appendChild(entryEl);
         });
+
+        if (friendMatches.length > 0) {
+            const heading = document.createElement('h3');
+            heading.className = 'friend-match-heading';
+            heading.textContent = 'Play with a friend results';
+            list.appendChild(heading);
+
+            friendMatches.forEach(match => {
+                const matchEl = document.createElement('div');
+                matchEl.className = 'lb-entry friend-match-entry mine';
+                matchEl.innerHTML = `
+                    <span class="lb-user">${escapeHtml(match.player_name)} vs ${escapeHtml(match.friend_name)}</span>
+                    <div class="friend-match-details">
+                        <span>${Number(match.player_score).toLocaleString()} – ${Number(match.friend_score).toLocaleString()} pts</span>
+                        <span>${Number(match.player_correct)}/10 – ${Number(match.friend_correct)}/10 correct</span>
+                        <strong>${escapeHtml(match.winner === 'Draw' ? 'Draw' : `${match.winner} won`)}</strong>
+                    </div>
+                    <div class="lb-right">
+                        <div class="lb-date">${escapeHtml(match.date || '')}</div>
+                    </div>
+                `;
+                list.appendChild(matchEl);
+            });
+        }
 
     } catch (error) {
         list.innerHTML = `<div class="lb-loading">⚠️ Could not load scores: ${escapeHtml(error.message)}</div>`;

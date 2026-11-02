@@ -19,6 +19,7 @@ define('USERS_FILE',    __DIR__ . '/../data/users.json');
 define('SESSIONS_FILE', __DIR__ . '/../data/sessions.json');
 define('SCORES_FILE',   __DIR__ . '/../data/scores.json');
 define('GUESTS_FILE',   __DIR__ . '/../data/guests.json');
+define('FRIEND_MATCHES_FILE', __DIR__ . '/../data/friend_matches.json');
 
 /**
  * Ensure data directory and JSON files exist on first run
@@ -27,7 +28,7 @@ function ensureDataFiles() {
     if (!is_dir(DATA_DIR)) {
         mkdir(DATA_DIR, 0755, true);
     }
-    foreach ([USERS_FILE, SESSIONS_FILE, SCORES_FILE, GUESTS_FILE] as $file) {
+    foreach ([USERS_FILE, SESSIONS_FILE, SCORES_FILE, GUESTS_FILE, FRIEND_MATCHES_FILE] as $file) {
         if (!file_exists($file)) {
             file_put_contents($file, '[]');
         }
@@ -77,12 +78,15 @@ function bootstrapAdminAccount() {
 
 function isAdminUser($username) {
     $credentials = configuredAdminCredentials();
-    if (!$credentials || strcasecmp($credentials['username'], (string) $username) !== 0) {
-        return false;
-    }
     foreach (readJson(USERS_FILE) as $user) {
-        if (strcasecmp($user['username'], $credentials['username']) === 0) {
-            return ($user['role'] ?? '') === 'admin'
+        if (strcasecmp($user['username'], (string) $username) === 0) {
+            if (($user['role'] ?? '') !== 'admin') {
+                return false;
+            }
+            if (!$credentials) {
+                return true;
+            }
+            return strcasecmp($user['username'], $credentials['username']) === 0
                 && password_verify($credentials['password'], $user['password_hash'] ?? '');
         }
     }
@@ -106,7 +110,17 @@ function readJson($file) {
  * @param array  $data  Data to serialize
  */
 function writeJson($file, $data) {
-    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT));
+    $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    return $json !== false && file_put_contents($file, $json, LOCK_EX) !== false;
+}
+
+function isUserBlocked($username) {
+    foreach (readJson(USERS_FILE) as $user) {
+        if (strcasecmp($user['username'] ?? '', (string) $username) === 0) {
+            return !empty($user['blocked']);
+        }
+    }
+    return false;
 }
 
 /**
